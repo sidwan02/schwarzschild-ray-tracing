@@ -1,0 +1,32 @@
+# Please enter inputs for the following:
+# debug: 
+# ['On' | 'Off']
+On
+
+
+# fascal: 
+=> ['On' | 'Off']
+On
+
+
+# defevol (deflection angle evolution):
+=> ['On', 'Off']
+Off
+
+
+# delta0_opts (Ray Emission Direction):
+=> For radial emission, input 'Radial' [NOT YET IMPLEMENTED]
+=> For parallel emission, input 'Parallel' 
+=> For custom angles (degrees), input: '[angle_1, angle_2, ..., angle_n]' 
+=> For custom angle range, input: '[start; end; interval]'
+[-10]
+
+
+# beam_loc (x-coordinate of beam):
+99.9
+
+
+# y_opts (y-coordinates of sources):
+=> For custom coordinate, input: '[y_1, y_2, ..., y_n]'
+=> For custom coordinate range, input: '[start, end, interval]'
+[-100; 100; 21]
