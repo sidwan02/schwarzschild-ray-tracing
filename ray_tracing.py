@@ -7,6 +7,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from itertools import takewhile
 from array import array
 import re
+import math
 
 # https://stackoverflow.com/questions/1987694/how-to-print-the-full-numpy-array-without-truncation
 np.set_printoptions(threshold=np.inf)
@@ -22,13 +23,13 @@ content_array = []
 
 
 def file_read():
-    with open("schwarzschild_ray_tracing\input.txt") as f:
+    with open("./input.txt") as f:
         for line in f:
             if not line.startswith("#") and not line == "\n" and not line.startswith("=>"):
                 content_array.append((line.rstrip()).lstrip())
 
-    if (len(content_array) < 6 or len(content_array) > 6):
-        print("Error: Please provide 6 inputs")
+    if (len(content_array) < 7 or len(content_array) > 7):
+        print("Error: Please provide 7 inputs")
         return False
     else:
         assign_variables()
@@ -85,6 +86,7 @@ def assign_variables():
     global fascal
     global defevol
     global delta0_opts
+    global screen_loc
     global beam_loc
     global y_opts
 
@@ -118,8 +120,13 @@ def assign_variables():
     except ValueError:
         raise Exception("Please recheck your input for 'beam_loc'")
 
-    y_opts = parse_array('y_opts', content_array[5])
-    print(y_opts)
+    try:
+        screen_loc = float(content_array[5])
+    except ValueError:
+        raise Exception("Please recheck your input for 'screen_loc'")
+
+    y_opts = parse_array('y_opts', content_array[6])
+    # print(y_opts)
     # y_opts = y_opts * np.pi / 180
 
 
@@ -129,6 +136,7 @@ print('fascal', fascal)
 print('defevol', defevol)
 print('delta0_opts', delta0_opts)
 print('beam_loc', beam_loc)
+print('screen_loc', screen_loc)
 print('y_opts', y_opts)
 
 
@@ -156,10 +164,10 @@ def lmit_200(t, y):
     if flag == 1:
         if y_beam >= 0:
             test = u + (M * np.cos(phi) * np.cos(theta) +
-                        M * np.sin(phi) * np.sin(theta))/-200
+                        M * np.sin(phi) * np.sin(theta))/(-1 * (beam_loc + 1e-1))
         elif y_beam < 0:
             test = u + (M * np.cos(phi) * np.cos(theta) -
-                        M * np.sin(phi) * np.sin(theta))/-200
+                        M * np.sin(phi) * np.sin(theta))/(-1 * (beam_loc + 1e-1))
         # test = y[0] + (M * np.cos(t))/200
         # test = u - M/200
         # test = np.ndarray.tolist(test)
@@ -169,14 +177,14 @@ def lmit_200(t, y):
         # test = u - M/200
         if y_beam >= 0:
             test = u + (M * np.cos(phi) * np.cos(theta) +
-                        M * np.sin(phi) * np.sin(theta))/-200
+                        M * np.sin(phi) * np.sin(theta))/(-1 * (beam_loc + 1e-1))
         elif y_beam < 0:
             test = u + (M * np.cos(phi) * np.cos(theta) -
-                        M * np.sin(phi) * np.sin(theta))/-200
+                        M * np.sin(phi) * np.sin(theta))/(-1 * (beam_loc + 1e-1))
     return test
 
 
-def limit_neg_100(t, y):
+def limit_screen(t, y):
     # when x' = -100 i.e. x * np.cos(theta) + y * np.sin(theta) = -100
     # i.e. r * np.cos(phi) * np.cos(theta) + r * np.sin(phi) * np.sin(theta) = -100
     # i.e. M/u * np.cos(phi) * np.cos(theta) + M/u * np.sin(phi) * np.sin(theta) = -100
@@ -188,23 +196,23 @@ def limit_neg_100(t, y):
     if flag == 1:
         if y_beam >= 0:
             test = u + (M * np.cos(phi) * np.cos(theta) +
-                        M * np.sin(phi) * np.sin(theta))/100
+                        M * np.sin(phi) * np.sin(theta))/(-1 * screen_loc)
         elif y_beam < 0:
             test = u + (M * np.cos(phi) * np.cos(theta) -
-                        M * np.sin(phi) * np.sin(theta))/100
-        # test = y[0] + (M * np.cos(t))/100
+                        M * np.sin(phi) * np.sin(theta))/(-1 * screen_loc)
+        # test = y[0] + (M * np.cos(t))/(-1 * screen_loc)
         # test = u - M/200
         # test = np.ndarray.tolist(test)
         flag = 0
     else:
-        # test = y[0] + (M * np.cos(t))/100
+        # test = y[0] + (M * np.cos(t))/(-1 * screen_loc)
         # test = u - M/200
         if y_beam >= 0:
             test = u + (M * np.cos(phi) * np.cos(theta) +
-                        M * np.sin(phi) * np.sin(theta))/100
+                        M * np.sin(phi) * np.sin(theta))/(-1 * screen_loc)
         elif y_beam < 0:
             test = u + (M * np.cos(phi) * np.cos(theta) -
-                        M * np.sin(phi) * np.sin(theta))/100
+                        M * np.sin(phi) * np.sin(theta))/(-1 * screen_loc)
     return test
 
 
@@ -230,7 +238,7 @@ def jac(t, y):
 
 # Define terminal condition and type-change flag
 # limit_200.terminal = True
-limit_neg_100.terminal = True
+limit_screen.terminal = True
 lmit_200.terminal = True
 limit_2.terminal = True
 global flag
@@ -253,13 +261,13 @@ M = 1
 
 # if you define this in the for loop only the last scatter will display
 if defevol == 'On':
-    fig, axs = plt.subplots(2)
+    fig, axs = plt.subplots(1, 2, sharex = True)
 else:
     fig, axs = plt.subplots(1)
 
 
 plt.suptitle(
-    f"Schwarzschild Ray Tracing {{(x, y) : x = {beam_loc}, y ∈ {content_array[5]}}}; \nEmission Angles = {content_array[3]}; Display -100 <= x <= 200; r >= 2M; \ndebug = {debug}; fascal = {fascal}; defevol = {defevol}")
+    f"Schwarzschild Ray Tracing | Beams → {{(x, y) : x = {beam_loc}, y ∈ {y_opts}}} \nScreen → {{(x, y) : x = {screen_loc}, y ∈ (-∞, ∞)}} | Emission Angles ∈ [{content_array[3]}] \nDisplay {screen_loc} <= x <= {beam_loc + 1e-1} | r >= 2 | debug = {debug} | fascal = {fascal} | defevol = {defevol}")
 # https://www.edureka.co/community/18327/nameerror-name-raw-input-is-not-defined#:~:text=There%20may%20a%20problem%20with%20your%20python%20version.&text=From%20Python3.,int()%20or%20float().
 step = 0
 
@@ -268,24 +276,76 @@ if fascal == 'On':
 elif fascal == 'Off':
     step = np.inf
 
+delta_max = []
+all_b = []
+
+def delta_evolution(x, y, y_beam):
+    delta_x = x[1:] - x[:-1]
+    delta_x = np.insert(delta_x, 0, 0) # to make sure as many elements as x points
+
+    cleaned_y = np.where(y > y_beam, y_beam, y)
+    delta_y = cleaned_y[1:] - cleaned_y[:-1]
+    delta_y = np.insert(delta_y, 0, 0)
+    # print('len: delta_x', len(delta_x))
+    # print('len: delta_y', len(delta_y))
+    delta = (np.arctan(delta_y / delta_x) / np.pi * 180)
+    print('delta before:', delta)
+    
+    def smoothen_jumps(d):
+        # print('d', d)
+
+        separator = len(d)
+        for i in range(0, len(d) - 1):
+            if d[i] - 170 > d[i + 1]:
+                separator = i + 1
+                break
+
+        # print('separator', separator)
+        
+        sub1 = d[:separator]
+        # print('sub1', sub1)
+        sub2 = d[separator:]
+        # print('sub2', sub2)
+        if len(sub2) == 0:
+            return sub1# + 180 * count
+        else:
+            #return np.append((sub1 + 180 * count), smoothen_jumps(sub2, count + 1))
+            return np.append(sub1, smoothen_jumps(sub2 + 180))
+        
+    
+    delta = smoothen_jumps(delta)
+
+    # https://www.kite.com/python/answers/how-to-replace-elements-in-a-numpy-array-if-a-condition-is-met-in-python#:~:text=Use%20numpy.,that%20do%20not%20with%20y%20.
+    # delta = np.where(delta < 0, 180 + delta, delta)
+    
+
+    print('delta after:', delta)
+    delta[0] = 0
+
+    delta_max.append(np.amax(delta))
+
+    return delta
 
 if debug == 'Off':
     for y_beam in y_opts:
-        # print("y_beam", y_beam)
+        print("y_beam:", y_beam)
         r0 = np.sqrt(np.square(beam_loc) + np.square(y_beam))
         # for some reason not having negaitve makes the source in the negative of the y_beam param
         theta = -np.arctan(y_beam / beam_loc)
         # print('r0', r0)
         # print('theta', theta)
         for delta0 in delta0_opts:
-            print('delta0', delta0)
+            # print('delta0', delta0)
             if delta0 == 'Parallel':
-                delta0 = np.pi - np.abs(theta)
-            print('delta0', delta0)
+                delta0 = np.pi - np.absolute(theta)
+            # print('delta0', delta0)
 
             B = r0 / np.sqrt(1 - (2 * M / r0))
 
             b = B * np.sin(delta0)
+
+            print('b:', b)
+            all_b.append(b)
 
             escape_to_inf = False
             # if (r0 < 2):
@@ -297,7 +357,7 @@ if debug == 'Off':
             elif (r0 > 3*M) & (delta0 < np.pi/2 or delta0 > np.pi/2) & (np.sin(delta0) > 3*np.sqrt(2)*M/B):
                 escape_to_inf = True
 
-            print("escape_to_inf:", escape_to_inf)
+            # print("escape_to_inf:", escape_to_inf)
 
             if escape_to_inf:
                 if delta0 == 0:
@@ -314,7 +374,7 @@ if debug == 'Off':
                     y0 = [u0, w0]
 
                     sol = solve_ivp(diffEquationNumSolver, t_span=[
-                        phi0, phif], y0=y0, method='LSODA', dense_output=True, events=(limit_neg_100, lmit_200, limit_2), jac=jac, max_step=step)
+                        phi0, phif], y0=y0, method='LSODA', dense_output=True, events=(limit_screen, lmit_200, limit_2), jac=jac, max_step=step)
 
                     # print(sol)
                     u = sol.y[0]
@@ -352,27 +412,22 @@ if debug == 'Off':
                                          label="(" + str(round(y_beam, 2)) + ", " + str(round(beam_loc, 2)) + "); " + str(round(delta0 / np.pi * 180, 2)) + "°")
 
                             if defevol == 'On':
-                                delta = (np.arctan(-u / w) / np.pi * 180)
-                                # print('delta: ', delta)
-
-                                # https://www.kite.com/python/answers/how-to-replace-elements-in-a-numpy-array-if-a-condition-is-met-in-python#:~:text=Use%20numpy.,that%20do%20not%20with%20y%20.
-                                delta = np.where(delta < 0, 180 + delta, delta)
+                                delta = delta_evolution(x_prime, y_prime, y_beam)
 
                                 axs[1].plot(x_prime, delta,
-                                            label="(" + str(round(y_beam, 2)) + ", " + str(round(beam_loc, 2)) + "); " + str(round(delta0 / np.pi * 180, 2)) + "°")
+                label="(" + str(round(y_beam, 2)) + ", " + str(round(beam_loc, 2)) + "); " + str(round(delta0 / np.pi * 180, 2)) + "°")
+
                     else:
                         if np.any(minus_x_prime < -6):
                             axs[0].plot(minus_x_prime, minus_y_prime,
                                         label="(" + str(round(y_beam, 2)) + ", " + str(round(beam_loc, 2)) + "); " + str(round(delta0 / np.pi * 180, 2)) + "°")
 
                             if defevol == 'On':
-                                delta = (np.arctan(-u / w) / np.pi * 180)
-                                # print('delta: ', delta)
+                                delta = delta_evolution(minus_x_prime, minus_y_prime, y_beam)
 
-                                # https://www.kite.com/python/answers/how-to-replace-elements-in-a-numpy-array-if-a-condition-is-met-in-python#:~:text=Use%20numpy.,that%20do%20not%20with%20y%20.
-                                delta = np.where(delta < 0, 180 + delta, delta)
                                 axs[1].plot(minus_x_prime, delta,
-                                            label="(" + str(round(y_beam, 2)) + ", " + str(round(beam_loc, 2)) + "); " + str(round(delta0 / np.pi * 180, 2)) + "°")
+                label="(" + str(round(y_beam, 2)) + ", " + str(round(beam_loc, 2)) + "); " + str(round(delta0 / np.pi * 180, 2)) + "°")
+
 
                     # print('delta', delta)
 
@@ -388,8 +443,15 @@ elif debug == 'On':
         # print('theta', theta)
         for delta0 in delta0_opts:
             if delta0 == 'Parallel':
-                delta0 = np.pi - np.abs(theta)
+                delta0 = np.pi - np.absolute(theta)
             # print('delta0', delta0)
+
+            B = r0 / np.sqrt(1 - (2 * M / r0))
+
+            b = B * np.sin(delta0)
+
+            print('b:', b)
+            all_b.append(b)
 
             if delta0 == 0:
                 m = (y_beam - 0) / (beam_loc - 0)
@@ -405,7 +467,7 @@ elif debug == 'On':
                 y0 = [u0, w0]
 
                 sol = solve_ivp(diffEquationNumSolver, t_span=[
-                    phi0, phif], y0=y0, method='LSODA', dense_output=True, events=(limit_neg_100, lmit_200, limit_2), jac=jac, max_step=step)
+                    phi0, phif], y0=y0, method='LSODA', dense_output=True, events=(limit_screen, lmit_200, limit_2), jac=jac, max_step=step)
 
                 # print(sol)
                 u = sol.y[0]
@@ -444,14 +506,11 @@ elif debug == 'On':
                                  label="(" + str(round(y_beam, 2)) + ", " + str(round(beam_loc, 2)) + "); " + str(round(delta0 / np.pi * 180, 2)) + "°")
 
                     if defevol == 'On':
-                        delta = (np.arctan(-u / w) / np.pi * 180)
-                        # print('delta: ', delta)
-
-                        # https://www.kite.com/python/answers/how-to-replace-elements-in-a-numpy-array-if-a-condition-is-met-in-python#:~:text=Use%20numpy.,that%20do%20not%20with%20y%20.
-                        delta = np.where(delta < 0, 180 + delta, delta)
+                        delta = delta_evolution(x_prime, y_prime, y_beam)
 
                         axs[1].plot(x_prime, delta,
-                                    label="(" + str(round(y_beam, 2)) + ", " + str(round(beam_loc, 2)) + "); " + str(round(delta0 / np.pi * 180, 2)) + "°")
+                label="(" + str(round(y_beam, 2)) + ", " + str(round(beam_loc, 2)) + "); " + str(round(delta0 / np.pi * 180, 2)) + "°")
+
                 else:
                     # if np.any(minus_x_prime < -6):
                     if defevol == 'On':
@@ -462,14 +521,11 @@ elif debug == 'On':
                                  label="(" + str(round(y_beam, 2)) + ", " + str(round(beam_loc, 2)) + "); " + str(round(delta0 / np.pi * 180, 2)) + "°")
 
                     if defevol == 'On':
-                        delta = (np.arctan(-u / w) / np.pi * 180)
-                        # print('delta: ', delta)
+                        delta = delta_evolution(minus_x_prime, minus_y_prime, y_beam)
 
-                        # https://www.kite.com/python/answers/how-to-replace-elements-in-a-numpy-array-if-a-condition-is-met-in-python#:~:text=Use%20numpy.,that%20do%20not%20with%20y%20.
-                        delta = np.where(
-                            delta < 0, 180 + delta, delta)
                         axs[1].plot(minus_x_prime, delta,
-                                    label="(" + str(round(y_beam, 2)) + ", " + str(round(beam_loc, 2)) + "); " + str(round(delta0 / np.pi * 180, 2)) + "°")
+                label="(" + str(round(y_beam, 2)) + ", " + str(round(beam_loc, 2)) + "); " + str(round(delta0 / np.pi * 180, 2)) + "°")
+
 
                 axs[0].legend(loc='upper right') if defevol == 'On' else axs.legend(
                     loc='upper right')
@@ -481,12 +537,25 @@ axs[0].set_xlabel('x') if defevol == 'On' else axs.set_xlabel('x')
 axs[0].set_ylabel('y') if defevol == 'On' else axs.set_ylabel('y')
 # axs[0].set_zlabel('z')
 
-# plt.xlim(-10, 10)
-# plt.ylim(-10, 10)
+# axs[0].set_xlim(-10, 10)
+# axs[0].set_ylim(-10, 10)
+# axs[1].set_xlim(-10, 10)
+# axs[1].set_ylim(-10, 10)
 if defevol == 'On':
-    axs[1].set_xlabel('phi')
+    axs[1].set_xlabel('x')
     axs[1].set_ylabel('delta')
 
+    del_max = np.amax(delta_max)
+    print('del_max', del_max)
+    plt.yticks(np.linspace(0, del_max - (del_max % 30) + 30, math.ceil(del_max / 30) + 1))
+
 # plt.gca().set_aspect('equal', adjustable='box')
+# axs.set_aspect('equal', adjustable='box')
+# axs[1].set_aspect('equal', adjustable='box')
+
+print('y_opts', y_opts)
+print('all_b', all_b)
+print('delta_max', delta_max)
+
 
 plt.show()
