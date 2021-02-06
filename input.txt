@@ -1,13 +1,12 @@
 # Please enter inputs for the following:
 # debug: 
 # ['On' | 'Off']
-Off
+On
 
 
 # fascal: 
 => ['On' | 'Off']
 On
-
 
 # defevol (deflection angle evolution):
 => ['On', 'Off']
@@ -21,16 +20,15 @@ On
 => For custom angle range, input: '[start; end; interval]'
 Parallel
 
-
 # beam_loc (x-coordinate of beam):
-100
+10
 
 
 # screen_loc (x-coordinate of screen):
--100
+-10
 
 
 # y_opts (y-coordinates of sources):
 => For custom coordinate, input: '[y_1, y_2, ..., y_n]'
 => For custom coordinate range, input: '[start; end; interval]'
-[10; 100; 10]
+5
