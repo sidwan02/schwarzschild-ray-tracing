@@ -38,3 +38,6 @@ def get_final_deflection(b_vec):
 
     return theta_vec
     # print('theta_vec: ', theta_vec)
+
+
+# print(get_final_deflection([10]))

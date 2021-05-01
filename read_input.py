@@ -9,22 +9,24 @@ from itertools import takewhile
 from array import array
 import re
 import math
+import os
 
 # global variables
 content_array = []
 
 
 # Getting inputs from input file
+my_path = os.path.dirname(__file__)
 
 
 def file_read():
-    with open("./input.txt") as f:
+    with open(my_path + "/input.txt") as f:
         for line in f:
             if not line.startswith("#") and not line == "\n" and not line.startswith("=>"):
                 content_array.append((line.rstrip()).lstrip())
 
-    if (len(content_array) < 7 or len(content_array) > 7):
-        print("Error: Please provide 7 inputs")
+    if (len(content_array) < 8 or len(content_array) > 8):
+        print("Error: Please provide 8 inputs")
         return False
     else:
         assign_variables()
@@ -79,6 +81,7 @@ def parse_array(var, t):
 def assign_variables():
     global debug
     global fascal
+    global graphing
     global defevol
     global delta0_opts
     global screen_loc
@@ -100,27 +103,32 @@ def assign_variables():
         fascal = content_array[1]
 
     if (content_array[2] != 'Off' and content_array[2] != 'On'):
+        raise Exception("Please recheck your input for 'graphing'")
+    else:
+        graphing = content_array[2]
+
+    if (content_array[3] != 'Off' and content_array[3] != 'On'):
         raise Exception("Please recheck your input for 'defevol'")
     else:
-        defevol = content_array[2]
+        defevol = content_array[3]
 
-    delta0_opts = parse_array('delta0_opts', content_array[3])
+    delta0_opts = parse_array('delta0_opts', content_array[4])
     if type(delta0_opts) == str:
         delta0_opts = [delta0_opts]
     else:
         delta0_opts = delta0_opts * np.pi / 180
 
     try:
-        beam_loc = float(content_array[4])
+        beam_loc = float(content_array[5])
     except ValueError:
         raise Exception("Please recheck your input for 'beam_loc'")
 
     try:
-        screen_loc = float(content_array[5])
+        screen_loc = float(content_array[6])
     except ValueError:
         raise Exception("Please recheck your input for 'screen_loc'")
 
-    y_opts = parse_array('y_opts', content_array[6])
+    y_opts = parse_array('y_opts', content_array[7])
     # print(y_opts)
     # y_opts = y_opts * np.pi / 180
 
@@ -130,10 +138,11 @@ def get_constraints_from_file():
 
     print('debug', debug)
     print('fascal', fascal)
+    print('graphing', graphing)
     print('defevol', defevol)
     print('delta0_opts', delta0_opts)
     print('beam_loc', beam_loc)
     print('screen_loc', screen_loc)
     print('y_opts', y_opts)
 
-    return [debug, fascal, defevol, delta0_opts, screen_loc, beam_loc, y_opts]
+    return [debug, fascal, graphing, defevol, delta0_opts, screen_loc, beam_loc, y_opts]

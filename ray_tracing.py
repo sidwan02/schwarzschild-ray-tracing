@@ -22,11 +22,12 @@ content_array = get_constraints_from_file()
 def ray_tracing(content_array):
     debug = content_array[0]
     fascal = content_array[1]
-    defevol = content_array[2]
-    delta0_opts = content_array[3]
-    screen_loc = content_array[4]
-    beam_loc = content_array[5]
-    y_opts = content_array[6]
+    graphing = content_array[2]
+    defevol = content_array[3]
+    delta0_opts = content_array[4]
+    screen_loc = content_array[5]
+    beam_loc = content_array[6]
+    y_opts = content_array[7]
 
     def diffEquationNumSolver(phi, y):
         u = y[0]
@@ -273,7 +274,7 @@ def ray_tracing(content_array):
                         minus_y_prime = -x * \
                             np.sin(theta) + (-y) * np.cos(theta)
 
-                        if y_beam >= 0:
+                        if y_beam >= 0 and delta0 > 0:
                             # print(x_prime)
                             # print(-100 in x_prime)
                             if np.any(x_prime < -6):
@@ -368,7 +369,8 @@ def ray_tracing(content_array):
 
                     # print('hi')
 
-                    if y_beam >= 0:
+                    # if y_beam >= 0:
+                    if y_beam >= 0 and delta0 > 0:
                         # print(x_prime)
                         # print(-100 in x_prime)
                         # if np.any(x_prime < -6):
@@ -434,9 +436,10 @@ def ray_tracing(content_array):
     print('all_b', all_b)
     print('delta_max', delta_max)
 
-    plt.show()
-
-    return delta_max
+    if graphing == 'On':
+        plt.show()
+    elif graphing == 'Off':
+        return delta_max
 
 
 ray_tracing(content_array)
